@@ -1,0 +1,332 @@
+<!DOCTYPE html>  
+<html lang="es">  
+<head>  
+    <meta charset="UTF-8">  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+    <title>TaskMaster Pro - Gestión de Proyectos</title>  
+    <style>  
+        :root {  
+            --primary: #8b5cf6; /* Lila */  
+            --primary-hover: #7c3aed; /* Lila más oscuro */  
+            --bg: #f1f5f9;  
+            --card: #ffffff;  
+            --text: #1e293b;  
+            --border: #cbd5e1;  
+        }  
+        body {  
+            font-family: system-ui, -apple-system, sans-serif;  
+            background-color: var(--bg);  
+            color: var(--text);  
+            margin: 0;  
+            padding: 15px;  
+        }  
+        .container {  
+            max-width: 780px;  
+            margin: auto;  
+            background: var(--card);  
+            padding: 22px;  
+            border-radius: 10px;  
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);  
+        }  
+        header {  
+            border-bottom: 2px solid var(--bg);  
+            padding-bottom: 12px;  
+            margin-bottom: 18px;  
+            display: flex;  
+            justify-content: space-between;  
+            align-items: center;  
+            flex-wrap: wrap;  
+        }  
+        header h1 { margin: 0; font-size: 22px; color: #dc2626; /* Título en rojo */ }  
+        header span { font-size: 12px; color: #64748b; font-weight: bold; }  
+
+        /* Tarjetas de Resumen */  
+        .stats {  
+            display: grid;  
+            grid-template-columns: repeat(3, 1fr);  
+            gap: 10px;  
+            margin-bottom: 18px;  
+        }  
+        .stat-box {  
+            background: #f8fafc;  
+            border: 1px solid var(--border);  
+            border-radius: 6px;  
+            padding: 10px;  
+            text-align: center;  
+        }  
+        .stat-box small { font-size: 12px; color: #475569; }  
+
+        /* Colores diferentes para cada número */  
+        #statTotal { display: block; font-size: 20px; color: #eab308; /* Amarillo */ }  
+        #statPendientes { display: block; font-size: 20px; color: #22c55e; /* Verde bajito */ }  
+        #statProgreso { display: block; font-size: 20px; color: #f97316; /* Naranja */ }  
+
+        /* Formulario de Registro */  
+        .form-grid {  
+            display: grid;  
+            grid-template-columns: 2fr 1fr 1fr 1fr;  
+            gap: 10px;  
+            margin-bottom: 12px;  
+        }  
+        @media (max-width: 600px) {  
+            .form-grid { grid-template-columns: 1fr; }  
+            .stats { grid-template-columns: 1fr; }  
+        }  
+        label { display: block; font-size: 11px; font-weight: bold; margin-bottom: 4px; color: #475569; }  
+        input, select {  
+            width: 100%;  
+            padding: 8px;  
+            border: 1px solid var(--border);  
+            border-radius: 5px;  
+            box-sizing: border-box;  
+            font-size: 13px;  
+        }  
+        button {  
+            padding: 9px 14px;  
+            border: none;  
+            border-radius: 5px;  
+            font-weight: bold;  
+            cursor: pointer;  
+            font-size: 13px;  
+        }  
+        .btn-add {  
+            background: var(--primary);  
+            color: white;  
+            width: 100%;  
+            margin-bottom: 18px;  
+        }  
+        .btn-add:hover { background: var(--primary-hover); }  
+
+        /* Barra de Filtros */  
+        .filters {  
+            background: #f8fafc;  
+            padding: 10px;  
+            border-radius: 6px;  
+            border: 1px solid var(--border);  
+            display: flex;  
+            gap: 12px;  
+            margin-bottom: 15px;  
+            flex-wrap: wrap;  
+            align-items: center;  
+        }  
+        .filters select { width: auto; flex: 1; min-width: 140px; }  
+
+        /* Lista de Tareas */  
+        .task-list { display: flex; flex-direction: column; gap: 8px; }  
+        .task-item {  
+            display: flex;  
+            justify-content: space-between;  
+            align-items: center;  
+            padding: 12px;  
+            border: 1px solid var(--border);  
+            border-left: 5px solid #94a3b8;  
+            border-radius: 6px;  
+            background: #fff;  
+        }  
+        .task-item.prio-Alta { border-left-color: #dc2626; }  
+        .task-item.prio-Media { border-left-color: #f59e0b; }  
+        .task-item.prio-Baja { border-left-color: #16a34a; }  
+        .task-item.completed { background: #f8fafc; opacity: 0.75; }  
+        .task-item.completed .task-title { text-decoration: line-through; color: #64748b; }  
+
+        .task-info { flex: 1; }  
+        .task-title { font-weight: bold; font-size: 14px; display: block; margin-bottom: 4px; }  
+        .task-meta { font-size: 12px; color: #64748b; }  
+        .badge {  
+            padding: 2px 7px;  
+            border-radius: 10px;  
+            font-size: 11px;  
+            font-weight: bold;  
+            margin-right: 5px;  
+        }  
+        .badge-Alta { background: #fee2e2; color: #991b1b; }  
+        .badge-Media { background: #fef3c7; color: #92400e; }  
+        .badge-Baja { background: #dcfce7; color: #166534; }  
+
+        .actions { display: flex; gap: 6px; }  
+        .btn-check { background: #ec4899; color: white; padding: 6px 10px; font-size: 12px; } /* Botón rosa */  
+        .btn-undo { background: #64748b; color: white; padding: 6px 10px; font-size: 12px; }  
+        .btn-del { background: #dc2626; color: white; padding: 6px 10px; font-size: 12px; }  
+    </style>  
+</head>  
+<body>  
+    <div class="container">  
+        <header>  
+            <h1>📋 TaskMaster Pro</h1>  
+            <span>CECyTEC Plantel 5 • Grupo 502</span>  
+        </header>  
+
+        <!-- INDICADORES DE PROGRESO -->  
+        <div class="stats">  
+            <div class="stat-box">  
+                <strong id="statTotal">0</strong>  
+                <small>Tareas Totales</small>  
+            </div>  
+            <div class="stat-box">  
+                <strong id="statPendientes">0</strong>  
+                <small>Pendientes</small>  
+            </div>  
+            <div class="stat-box">  
+                <strong id="statProgreso">0%</strong>  
+                <small>Avance Completado</small>  
+            </div>  
+        </div>  
+
+        <!-- FORMULARIO DE CAPTURA -->  
+        <div class="form-grid">  
+            <div>  
+                <label>Descripción de la Tarea:</label>  
+                <input type="text" id="titulo" placeholder="Ej. Validar módulo de reportes">  
+            </div>  
+            <div>  
+                <label>Prioridad:</label>  
+                <select id="prioridad">  
+                    <option value="Alta">Alta</option>  
+                    <option value="Media" selected>Media</option>  
+                    <option value="Baja">Baja</option>  
+                </select>  
+            </div>  
+            <div>  
+                <label>Categoría:</label>  
+                <select id="categoria">  
+                    <option value="Frontend">Frontend</option>  
+                    <option value="Lógica JS">Lógica JS</option>  
+                    <option value="Documentación">Documentación</option>  
+                    <option value="Pruebas">Pruebas</option>  
+                </select>  
+            </div>  
+            <div>  
+                <label>Fecha Límite:</label>  
+                <input type="date" id="fecha">  
+            </div>  
+        </div>  
+        <button class="btn-add" onclick="agregarTarea()">+ Agregar Tarea al Proyecto</button>  
+
+        <!-- FILTROS DE VISUALIZACIÓN -->  
+        <div class="filters">  
+            <strong style="font-size: 12px;">🔍 Filtrar por:</strong>  
+            <select id="filtroEstado" onchange="renderizarTareas()">  
+                <option value="todas">Estado: Todas</option>  
+                <option value="pendientes">Solo Pendientes</option>  
+                <option value="completadas">Solo Completadas</option>  
+            </select>  
+            <select id="filtroPrioridad" onchange="renderizarTareas()">  
+                <option value="todas">Prioridad: Todas</option>  
+                <option value="Alta">Prioridad Alta</option>  
+                <option value="Media">Prioridad Media</option>  
+                <option value="Baja">Prioridad Baja</option>  
+            </select>  
+        </div>  
+
+        <!-- CONTENEDOR DE TAREAS -->  
+        <div class="task-list" id="listaTareas"></div>  
+    </div>  
+
+    <script>  
+        window.onload = function() {  
+            document.getElementById("fecha").value = new Date().toISOString().split('T')[0];  
+            renderizarTareas();  
+        };  
+      
+        function obtenerTareas() {  
+            return JSON.parse(localStorage.getItem("taskmaster_502")) || [];  
+        }  
+      
+        function guardarTareas(tareas) {  
+            localStorage.setItem("taskmaster_502", JSON.stringify(tareas));  
+        }  
+      
+        function agregarTarea() {  
+            const titulo = document.getElementById("titulo").value.trim();  
+            const prioridad = document.getElementById("prioridad").value;  
+            const categoria = document.getElementById("categoria").value;  
+            const fecha = document.getElementById("fecha").value;  
+      
+            if (!titulo || !fecha) {  
+                alert("⚠️ Por favor escribe la descripción de la tarea y selecciona una fecha límite.");  
+                return;  
+            }  
+      
+            const tareas = obtenerTareas();  
+            tareas.push({  
+                id: Date.now(),  
+                titulo: titulo,  
+                prioridad: prioridad,  
+                categoria: categoria,  
+                fecha: fecha,  
+                completada: false  
+            });  
+      
+            guardarTareas(tareas);  
+            document.getElementById("titulo").value = "";  
+            renderizarTareas();  
+        }  
+      
+        function alternarEstado(id) {  
+            const tareas = obtenerTareas();  
+            const tarea = tareas.find(t => t.id === id);  
+            if (tarea) {  
+                tarea.completada = !tarea.completada;  
+                guardarTareas(tareas);  
+                renderizarTareas();  
+            }  
+        }  
+      
+        function eliminarTarea(id) {  
+            if (confirm("¿Deseas eliminar esta tarea definitivamente?")) {  
+                const tareas = obtenerTareas().filter(t => t.id !== id);  
+                guardarTareas(tareas);  
+                renderizarTareas();  
+            }  
+        }  
+      
+        function renderizarTareas() {  
+            const todas = obtenerTareas();  
+            const filtroEst = document.getElementById("filtroEstado").value;  
+            const filtroPrio = document.getElementById("filtroPrioridad").value;  
+      
+            const total = todas.length;  
+            const completadas = todas.filter(t => t.completada).length;  
+            const pendientes = total - completadas;  
+            const porcentaje = total === 0 ? 0 : Math.round((completadas / total) * 100);  
+      
+            document.getElementById("statTotal").innerText = total;  
+            document.getElementById("statPendientes").innerText = pendientes;  
+            document.getElementById("statProgreso").innerText = porcentaje + "%";  
+      
+            let filtradas = todas;  
+            if (filtroEst === "pendientes") filtradas = filtradas.filter(t => !t.completada);  
+            if (filtroEst === "completadas") filtradas = filtradas.filter(t => t.completada);  
+            if (filtroPrio !== "todas") filtradas = filtradas.filter(t => t.prioridad === filtroPrio);  
+      
+            const contenedor = document.getElementById("listaTareas");  
+            contenedor.innerHTML = "";  
+      
+            if (filtradas.length === 0) {  
+                contenedor.innerHTML = `<p style="text-align:center; color:#64748b; padding:15px;">No hay tareas que coincidan con los filtros seleccionados.</p>`;  
+                return;  
+            }  
+      
+            filtradas.forEach(t => {  
+                contenedor.innerHTML += `  
+                    <div class="task-item prio-${t.prioridad} ${t.completada ? 'completed' : ''}">  
+                        <div class="task-info">  
+                            <span class="task-title">${t.titulo}</span>  
+                            <div class="task-meta">  
+                                <span class="badge badge-${t.prioridad}">${t.prioridad}</span>  
+                                📁 ${t.categoria} &nbsp;|&nbsp; 📅 Vence: ${t.fecha}  
+                            </div>  
+                        </div>  
+                        <div class="actions">  
+                            <button class="${t.completada ? 'btn-undo' : 'btn-check'}" onclick="alternarEstado(${t.id})">  
+                                ${t.completada ? 'Reabrir' : '✓ Completado'}  
+                            </button>  
+                            <button class="btn-del" onclick="eliminarTarea(${t.id})">X</button>  
+                        </div>  
+                    </div>  
+                `;  
+            });  
+        }  
+    </script>  
+</body>  
+</html>
